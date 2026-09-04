@@ -352,7 +352,7 @@
         const params = new URLSearchParams({
           latitude: location.latitude,
           longitude: location.longitude,
-          current: 'temperature_2m,weather_code,is_day,relative_humidity,wind_speed_10m',
+          current: 'temperature_2m,weather_code,is_day,wind_speed_10m',
           daily: 'weather_code,temperature_2m_max,temperature_2m_min',
           temperature_unit: 'fahrenheit',
           wind_speed_unit: 'mph',
@@ -384,8 +384,8 @@
             <div class="weather-description">${getWeatherDescription(current.weather_code)}</div>
             <div class="weather-details">
               <div class="detail">
-                <div class="detail-label">Humidity</div>
-                <div class="detail-value">${current.relative_humidity}%</div>
+                <div class="detail-label">Feels Like</div>
+                <div class="detail-value">${Math.round(current.temperature_2m)}°F</div>
               </div>
               <div class="detail">
                 <div class="detail-label">Wind</div>
