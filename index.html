@@ -199,6 +199,99 @@
       font-weight: 600;
     }
 
+    .hourly-forecast {
+      margin-top: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .hourly-forecast h2 {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .hourly-scroll {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding: 0.5rem 0;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-color) var(--bg-secondary);
+    }
+
+    .hourly-card {
+      background-color: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 0.75rem;
+      text-align: center;
+      flex-shrink: 0;
+      min-width: 80px;
+      box-shadow: var(--shadow);
+    }
+
+    .hourly-time {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.25rem;
+      font-weight: 600;
+    }
+
+    .hourly-icon {
+      font-size: 1.5rem;
+      margin: 0.25rem 0;
+    }
+
+    .hourly-temp {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .air-quality {
+      background-color: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-top: 2rem;
+      box-shadow: var(--shadow);
+    }
+
+    .air-quality h3 {
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .aqi-box {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .aqi-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      min-width: 80px;
+    }
+
+    .aqi-details {
+      flex: 1;
+    }
+
+    .aqi-status {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .aqi-description {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .aqi-good { color: #10b981; }
+    .aqi-fair { color: #f59e0b; }
+    .aqi-moderate { color: #ef4444; }
+    .aqi-poor { color: #7c3aed; }
+
     .forecast-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -377,6 +470,30 @@
       document.getElementById('loadingContainer').innerHTML = '';
     }
 
+    // Get AQI status
+    function getAQIStatus(aqi) {
+      if (aqi <= 50) return 'Good';
+      if (aqi <= 100) return 'Fair';
+      if (aqi <= 150) return 'Moderate';
+      return 'Poor';
+    }
+
+    // Get AQI class for styling
+    function getAQIClass(aqi) {
+      if (aqi <= 50) return 'aqi-good';
+      if (aqi <= 100) return 'aqi-fair';
+      if (aqi <= 150) return 'aqi-moderate';
+      return 'aqi-poor';
+    }
+
+    // Get AQI description
+    function getAQIDescription(aqi) {
+      if (aqi <= 50) return 'Air quality is satisfactory';
+      if (aqi <= 100) return 'Members of sensitive groups may experience issues';
+      if (aqi <= 150) return 'Everyone may begin to experience health effects';
+      return 'Health alert: the entire population is more likely to be affected';
+    }
+
     // Render weather
     async function renderWeather(location) {
       showLoading();
@@ -386,7 +503,8 @@
         const params = new URLSearchParams({
           latitude: location.latitude,
           longitude: location.longitude,
-          current: 'temperature_2m,weather_code,is_day,wind_speed_10m',
+          current: 'temperature_2m,weather_code,is_day,wind_speed_10m,us_aqi',
+          hourly: 'temperature_2m,weather_code',
           daily: 'weather_code,temperature_2m_max,temperature_2m_min',
           temperature_unit: 'fahrenheit',
           wind_speed_unit: 'mph',
@@ -459,6 +577,47 @@
         }
 
         html += `
+            </div>
+          </div>
+
+          <div class="hourly-forecast">
+            <h2>12-Hour Forecast</h2>
+            <div class="hourly-scroll">
+        `;
+
+        const now = new Date(data.current.time);
+        const currentHour = now.getHours();
+        const hourlyData = data.hourly;
+        
+        for (let i = 0; i < 12; i++) {
+          const hourIndex = currentHour + i;
+          const temp = Math.round(hourlyData.temperature_2m[hourIndex]);
+          const code = hourlyData.weather_code[hourIndex];
+          const icon = getWeatherIcon(code, i < 6);
+          const time = new Date(now.getTime() + i * 3600000);
+          const timeStr = time.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
+
+          html += `
+            <div class="hourly-card">
+              <div class="hourly-time">${timeStr}</div>
+              <div class="hourly-icon">${icon}</div>
+              <div class="hourly-temp">${temp}°F</div>
+            </div>
+          `;
+        }
+
+        html += `
+            </div>
+          </div>
+
+          <div class="air-quality">
+            <h3>🌍 Air Quality</h3>
+            <div class="aqi-box">
+              <div class="aqi-value ${getAQIClass(data.current.us_aqi)}">${Math.round(data.current.us_aqi)}</div>
+              <div class="aqi-details">
+                <div class="aqi-status">${getAQIStatus(data.current.us_aqi)}</div>
+                <div class="aqi-description">${getAQIDescription(data.current.us_aqi)}</div>
+              </div>
             </div>
           </div>
         `;
