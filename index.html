@@ -39,6 +39,29 @@
       }
     }
 
+    /* Day mode overrides */
+    body.day-mode {
+      --bg-primary: #fef9f3;
+      --bg-secondary: #fff9e6;
+      --text-primary: #1a1a1a;
+      --text-secondary: #666666;
+      --border-color: #f0d9b5;
+      --accent-sunny: #f59e0b;
+      background: linear-gradient(135deg, #fef9f3 0%, #fef3c7 100%);
+    }
+
+    /* Night mode overrides */
+    body.night-mode {
+      --bg-primary: #0f172a;
+      --bg-secondary: #1e293b;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --border-color: #334155;
+      --accent-sunny: #60a5fa;
+      --accent-rainy: #38bdf8;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
       font-size: 15px;
@@ -255,6 +278,17 @@
     .accent-snow {
       color: var(--accent-snow);
     }
+
+    .mode-badge {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      background-color: var(--bg-secondary);
+      color: var(--text-primary);
+    }
   </style>
 </head>
 <body>
@@ -376,8 +410,16 @@
         const accentClass = getAccentClass(current.weather_code);
         const icon = getWeatherIcon(current.weather_code, current.is_day);
 
+        // Apply day/night mode
+        if (current.is_day === 1) {
+          document.body.className = 'day-mode';
+        } else {
+          document.body.className = 'night-mode';
+        }
+
         let html = `
           <div class="current-weather">
+            <div class="mode-badge">${current.is_day === 1 ? '☀️ Daytime' : '🌙 Nighttime'}</div>
             <div class="weather-icon ${accentClass}">${icon}</div>
             <div class="location-name">${location.name}</div>
             <div class="temperature-display">${Math.round(current.temperature_2m)}°F</div>
@@ -464,6 +506,7 @@
     // Fallback data for Tokyo
     function renderFallback(location) {
       const accentClass = 'accent-sunny';
+      document.body.className = 'day-mode';
       const fallbackData = {
         name: location.name,
         temperature: 72,
